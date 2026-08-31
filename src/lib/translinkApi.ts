@@ -47,14 +47,19 @@ function mapOccupancy(occupancy: string): BusData["passengerLoad"] {
  * Returns all active buses in the Greater Vancouver area
  */
 export async function fetchTransLinkBuses(): Promise<BusData[]> {
-  if (!API_KEY) {
-    console.warn("TransLink API key not configured - using mock data");
+  // Use NEXT_PUBLIC_ prefix for client-side access
+  const apiKey = process.env.NEXT_PUBLIC_TRANSLINK_API_KEY || process.env.TRANSLINK_API_KEY;
+  
+  if (!apiKey) {
+    console.warn("⚠️ TransLink API key not found - check .env.local");
     return [];
   }
 
   try {
+    console.log(`🔗 Connecting to TransLink API: ${API_URL}`);
+    
     const response = await fetch(
-      `${API_URL}/rttiapi/v1/vehicles?apikey=${API_KEY}`,
+      `${API_URL}/rttiapi/v1/vehicles?apikey=${apiKey}`,
       {
         headers: {
           "Accept": "application/json",
@@ -63,10 +68,12 @@ export async function fetchTransLinkBuses(): Promise<BusData[]> {
     );
 
     if (!response.ok) {
+      console.error(`❌ TransLink API error: ${response.status} ${response.statusText}`);
       throw new Error(`TransLink API error: ${response.status}`);
     }
 
     const data: TransLinkVehicle[] = await response.json();
+    console.log(`📡 TransLink returned ${data.length} vehicles`);
 
     // Map TransLink data to our BusData format
     const buses: BusData[] = data
