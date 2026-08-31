@@ -3,43 +3,74 @@
  * 
  * Generates realistic transit bus data for testing without requiring
  * a real GTFS-RT feed.
+ * 
+ * Currently simulating Greater Vancouver, BC transit routes
  */
 
 import type { BusData, TransitStop, Coordinates } from "@/types";
 
-// Portland, OR area coordinates for demo
-const PORTLAND_CENTER: Coordinates = { latitude: 45.5152, longitude: -122.6784 };
+// Greater Vancouver, BC area coordinates for demo
+const VANCOUVER_CENTER: Coordinates = { latitude: 49.2827, longitude: -123.1207 };
 
-// Route definitions with waypoints
+// Route definitions with waypoints - Greater Vancouver routes
 const ROUTES = [
   {
-    id: "route-1",
-    name: "Line 14",
-    destination: "Hawthorne",
+    id: "route-99",
+    name: "99 Commercial-Broadway",
+    destination: "UBC",
     stops: [
-      { name: "Pioneer Square", position: { latitude: 45.5189, longitude: -122.6792 } },
-      { name: "Powell's City", position: { latitude: 45.5230, longitude: -122.6815 } },
-      { name: "Division", position: { latitude: 45.5089, longitude: -122.6530 } },
+      { name: "Broadway & Commercial", position: { latitude: 49.2604, longitude: -123.0713 } },
+      { name: "Main Street", position: { latitude: 49.2625, longitude: -123.0925 } },
+      { name: "Cambie Street", position: { latitude: 49.2635, longitude: -123.1135 } },
+      { name: "Oak Street", position: { latitude: 49.2645, longitude: -123.1315 } },
+      { name: "Arbutus", position: { latitude: 49.2655, longitude: -123.1515 } },
+      { name: "UBC", position: { latitude: 49.2688, longitude: -123.2530 } },
     ],
   },
   {
-    id: "route-2",
-    name: "Line 20",
-    destination: "Beaverton",
+    id: "route-20",
+    name: "20 Victoria/Downtown",
+    destination: "Victoria",
     stops: [
-      { name: "SW 5th & Morrison", position: { latitude: 45.5185, longitude: -122.6815 } },
-      { name: "Washington Park", position: { latitude: 45.5159, longitude: -122.6973 } },
-      { name: "Beaverton TC", position: { latitude: 45.4782, longitude: -122.8060 } },
+      { name: "Waterfront Station", position: { latitude: 49.2850, longitude: -123.1107 } },
+      { name: "Granville & Georgia", position: { latitude: 49.2827, longitude: -123.1207 } },
+      { name: "Davie Street", position: { latitude: 49.2790, longitude: -123.1280 } },
+      { name: "Denman & Georgia", position: { latitude: 49.2755, longitude: -123.1365 } },
+      { name: "Stanley Park", position: { latitude: 49.2735, longitude: -123.1450 } },
     ],
   },
   {
-    id: "route-3",
-    name: "Line 8",
-    destination: "Lake Oswego",
+    id: "route-41",
+    name: "41 Joyce Station/Crown",
+    destination: "Crown",
     stops: [
-      { name: "SW 4th & Burnside", position: { latitude: 45.5231, longitude: -122.6784 } },
-      { name: "Macrum", position: { latitude: 45.5070, longitude: -122.6592 } },
-      { name: "Lake Oswego TC", position: { latitude: 45.4207, longitude: -122.6706 } },
+      { name: "Joyce-Collingwood Stn", position: { latitude: 49.2385, longitude: -123.0320 } },
+      { name: "Rupert Street", position: { latitude: 49.2450, longitude: -123.0500 } },
+      { name: "Sperling", position: { latitude: 49.2520, longitude: -123.0680 } },
+      { name: "Crown", position: { latitude: 49.2595, longitude: -123.0860 } },
+    ],
+  },
+  {
+    id: "route-5",
+    name: "5 Downtown/UBC",
+    destination: "UBC",
+    stops: [
+      { name: "Howe & Robson", position: { latitude: 49.2840, longitude: -123.1180 } },
+      { name: "Seymour & Pender", position: { latitude: 49.2820, longitude: -123.1050 } },
+      { name: "Main & Hastings", position: { latitude: 49.2810, longitude: -123.0920 } },
+      { name: "Clark & 2nd", position: { latitude: 49.2790, longitude: -123.0750 } },
+      { name: "UBC", position: { latitude: 49.2688, longitude: -123.2530 } },
+    ],
+  },
+  {
+    id: "route-10",
+    name: "10 Downtown/Hastings",
+    destination: "Downtown",
+    stops: [
+      { name: "Hastings & Main", position: { latitude: 49.2810, longitude: -123.0920 } },
+      { name: "Hastings & Carrall", position: { latitude: 49.2820, longitude: -123.1030 } },
+      { name: "Waterfront Station", position: { latitude: 49.2850, longitude: -123.1107 } },
+      { name: "Canada Place", position: { latitude: 49.2885, longitude: -123.1110 } },
     ],
   },
 ];
@@ -98,7 +129,7 @@ function initializeBusStates(): void {
       destination: route.destination,
       waypointIndex: 0,
       progress: Math.random(),
-      speed: 25 + Math.random() * 20, // 25-45 km/h
+      speed: 20 + Math.random() * 25, // 20-45 km/h (Vancouver traffic)
       direction: Math.random() > 0.5 ? 1 : -1,
     };
     busStates.set(state.id, state);
@@ -118,7 +149,7 @@ export function generateMockBuses(): BusData[] {
     const waypoints = route.stops.map((s) => s.position);
 
     // Update progress
-    state.progress += 0.02 + Math.random() * 0.01;
+    state.progress += 0.015 + Math.random() * 0.01;
 
     if (state.progress >= 1) {
       state.progress = 0;
@@ -137,8 +168,8 @@ export function generateMockBuses(): BusData[] {
     const position = interpolatePosition(from, to, state.progress);
     const heading = calculateBearing(from, to);
 
-    // Add some variation to speed
-    state.speed = Math.max(10, Math.min(60, state.speed + (Math.random() - 0.5) * 5));
+    // Add some variation to speed (Vancouver traffic)
+    state.speed = Math.max(5, Math.min(55, state.speed + (Math.random() - 0.5) * 8));
 
     buses.push({
       id: state.id,
@@ -150,7 +181,7 @@ export function generateMockBuses(): BusData[] {
       position,
       heading,
       speed: Math.round(state.speed * 10) / 10,
-      delay: Math.round((Math.random() - 0.3) * 10), // -3 to +7 minutes
+      delay: Math.round((Math.random() - 0.4) * 15), // -6 to +9 minutes (BC Transit delays)
       timestamp: new Date(),
       passengerLoad: ["empty", "low", "medium", "high"][
         Math.floor(Math.random() * 4)
@@ -201,8 +232,8 @@ export function generateBusForRoute(
     nextStop: route.stops[1]?.name || route.stops[0].name,
     position,
     heading,
-    speed: 30 + Math.random() * 20,
-    delay: Math.round((Math.random() - 0.3) * 10),
+    speed: 25 + Math.random() * 25,
+    delay: Math.round((Math.random() - 0.4) * 15),
     timestamp: new Date(),
     passengerLoad: ["empty", "low", "medium", "high"][
       Math.floor(Math.random() * 4)

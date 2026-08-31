@@ -4,9 +4,9 @@ import { useEffect, useRef, useCallback } from "react";
 import * as maplibregl from "maplibre-gl";
 import type { BusData } from "@/types";
 
-// Portland area center
-const MAP_CENTER: [number, number] = [-122.6784, 45.5152];
-const INITIAL_ZOOM = 11;
+// Vancouver, BC area center
+const MAP_CENTER: [number, number] = [-123.1207, 49.2600];
+const INITIAL_ZOOM = 12;
 
 interface TransitMapProps {
   buses: BusData[];
