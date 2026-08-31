@@ -1,28 +1,24 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { fetchTransLinkBuses, checkTransLinkStatus } from "@/lib/translinkApi";
-import { generateMockBuses } from "@/lib/mockData";
+import { fetchTransLinkBuses } from "@/lib/translinkApi";
 import type { BusData } from "@/types";
 
 export function useBusData() {
   return useQuery<BusData[]>({
     queryKey: ["buses"],
     queryFn: async () => {
-      console.log("🔄 Fetching bus data...");
+      console.log("🔄 Fetching bus data from TransLink...");
       
-      // Try fetching real TransLink data first
-      const realBuses = await fetchTransLinkBuses();
+      const buses = await fetchTransLinkBuses();
       
-      // If we got real data, use it
-      if (realBuses.length > 0) {
-        console.log(`✅ Loaded ${realBuses.length} real TransLink buses`);
-        return realBuses;
+      if (buses.length === 0) {
+        console.warn("⚠️ No buses returned from TransLink API");
+      } else {
+        console.log(`✅ Loaded ${buses.length} buses`);
       }
       
-      // Fallback to mock data if API fails or returns empty
-      console.log("⚠️ TransLink API unavailable - using mock data");
-      return generateMockBuses();
+      return buses;
     },
     refetchInterval: 10000, // Refresh every 10 seconds for real-time
     staleTime: 5000,

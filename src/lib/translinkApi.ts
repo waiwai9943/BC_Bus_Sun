@@ -6,8 +6,8 @@
 
 import type { BusData, Coordinates } from "@/types";
 
-const API_KEY = process.env.TRANSLINK_API_KEY;
-const API_URL = process.env.TRANSLINK_API_URL || "https://api.translink.ca";
+// Default API URL (can be overridden in env)
+const DEFAULT_API_URL = "https://api.translink.ca";
 
 /**
  * TransLink Vehicle API Response
@@ -48,18 +48,19 @@ function mapOccupancy(occupancy: string): BusData["passengerLoad"] {
  */
 export async function fetchTransLinkBuses(): Promise<BusData[]> {
   // Use NEXT_PUBLIC_ prefix for client-side access
-  const apiKey = process.env.NEXT_PUBLIC_TRANSLINK_API_KEY || process.env.TRANSLINK_API_KEY;
+  const apiKey = process.env.NEXT_PUBLIC_TRANSLINK_API_KEY;
+  const apiUrl = process.env.NEXT_PUBLIC_TRANSLINK_API_URL || DEFAULT_API_URL;
   
   if (!apiKey) {
-    console.warn("⚠️ TransLink API key not found - check .env.local");
-    return [];
+    console.error("❌ TransLink API key missing - add NEXT_PUBLIC_TRANSLINK_API_KEY to .env.local");
+    throw new Error("TransLink API key not configured");
   }
 
   try {
-    console.log(`🔗 Connecting to TransLink API: ${API_URL}`);
+    console.log(`🔗 Connecting to TransLink API: ${apiUrl}`);
     
     const response = await fetch(
-      `${API_URL}/rttiapi/v1/vehicles?apikey=${apiKey}`,
+      `${apiUrl}/rttiapi/v1/vehicles?apikey=${apiKey}`,
       {
         headers: {
           "Accept": "application/json",
@@ -98,8 +99,8 @@ export async function fetchTransLinkBuses(): Promise<BusData[]> {
 
     return buses;
   } catch (error) {
-    console.error("Failed to fetch TransLink data:", error);
-    return [];
+    console.error("❌ Failed to fetch TransLink data:", error);
+    throw error; // Re-throw so the query knows it failed
   }
 }
 
@@ -107,13 +108,16 @@ export async function fetchTransLinkBuses(): Promise<BusData[]> {
  * Get list of routes from TransLink
  */
 export async function fetchTransLinkRoutes(): Promise<Array<{ id: string; name: string }>> {
-  if (!API_KEY) {
+  const apiKey = process.env.NEXT_PUBLIC_TRANSLINK_API_KEY;
+  const apiUrl = process.env.NEXT_PUBLIC_TRANSLINK_API_URL || DEFAULT_API_URL;
+  
+  if (!apiKey) {
     return [];
   }
 
   try {
     const response = await fetch(
-      `${API_URL}/rttiapi/v1/routes?apikey=${API_KEY}`,
+      `${apiUrl}/rttiapi/v1/routes?apikey=${apiKey}`,
       {
         headers: {
           "Accept": "application/json",
@@ -145,13 +149,16 @@ export async function fetchTransLinkRoutes(): Promise<Array<{ id: string; name: 
  * Check if TransLink API is configured and accessible
  */
 export async function checkTransLinkStatus(): Promise<boolean> {
-  if (!API_KEY) {
+  const apiKey = process.env.NEXT_PUBLIC_TRANSLINK_API_KEY;
+  const apiUrl = process.env.NEXT_PUBLIC_TRANSLINK_API_URL || DEFAULT_API_URL;
+  
+  if (!apiKey) {
     return false;
   }
 
   try {
     const response = await fetch(
-      `${API_URL}/rttiapi/v1/routes?apikey=${API_KEY}`,
+      `${apiUrl}/rttiapi/v1/routes?apikey=${apiKey}`,
       {
         headers: {
           "Accept": "application/json",
