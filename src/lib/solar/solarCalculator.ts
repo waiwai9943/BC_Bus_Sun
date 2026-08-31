@@ -221,18 +221,22 @@ export function getSeatRecommendation(
 
   const confidence = Math.min(intensity * 1.2, 1); // Cap at 1
 
+  // At this point we know sunnySide and shadedSide are "left" or "right"
+  const effectiveSunnySide = sunnySide as "left" | "right";
+  const effectiveShadedSide = shadedSide as "left" | "right";
+
   if (wantsSun) {
-    const side = sunnySide === "left" ? "LEFT" : "RIGHT";
+    const side = effectiveSunnySide === "left" ? "LEFT" : "RIGHT";
     return {
-      side: sunnySide,
+      side: effectiveSunnySide,
       confidence,
       reason: `The ${side} side is sunny - perfect for catching rays`,
       wantsSun,
     };
   } else {
-    const side = shadedSide === "left" ? "LEFT" : "RIGHT";
+    const side = effectiveShadedSide === "left" ? "LEFT" : "RIGHT";
     return {
-      side: shadedSide,
+      side: effectiveShadedSide,
       confidence,
       reason: `The ${side} side is shaded - stay cool and protected`,
       wantsSun,
