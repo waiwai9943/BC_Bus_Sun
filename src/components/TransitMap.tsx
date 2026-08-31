@@ -13,6 +13,7 @@ interface TransitMapProps {
   isLoading: boolean;
   onBusClick: (bus: BusData) => void;
   selectedBusId?: string;
+  userLocation?: { latitude: number; longitude: number } | null;
 }
 
 export default function TransitMap({
@@ -20,10 +21,12 @@ export default function TransitMap({
   isLoading,
   onBusClick,
   selectedBusId,
+  userLocation,
 }: TransitMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const markersRef = useRef<Map<string, maplibregl.Marker>>(new Map());
+  const userMarkerRef = useRef<maplibregl.Marker | null>(null);
 
   // Initialize map
   useEffect(() => {
@@ -149,6 +152,40 @@ export default function TransitMap({
     }
   }, [selectedBusId, buses]);
 
+  // Handle user location marker
+  useEffect(() => {
+    if (!map.current) return;
+
+    if (userLocation) {
+      // Create or update user location marker
+      if (userMarkerRef.current) {
+        userMarkerRef.current.setLngLat([userLocation.longitude, userLocation.latitude]);
+      } else {
+        const el = document.createElement("div");
+        el.className = "user-marker";
+        el.innerHTML = createUserMarkerSVG();
+        el.style.zIndex = "200"; // Above bus markers
+
+        userMarkerRef.current = new maplibregl.Marker({ element: el })
+          .setLngLat([userLocation.longitude, userLocation.latitude])
+          .addTo(map.current);
+
+        // Pan to user location initially
+        map.current?.flyTo({
+          center: [userLocation.longitude, userLocation.latitude],
+          zoom: 14,
+          duration: 1000,
+        });
+      }
+    } else {
+      // Remove user marker if location is cleared
+      if (userMarkerRef.current) {
+        userMarkerRef.current.remove();
+        userMarkerRef.current = null;
+      }
+    }
+  }, [userLocation]);
+
   return (
     <>
       <style jsx global>{`
@@ -156,6 +193,11 @@ export default function TransitMap({
           width: 36px;
           height: 36px;
           transition: transform 0.3s ease;
+        }
+        .user-marker {
+          width: 24px;
+          height: 24px;
+          cursor: pointer;
         }
         .maplibregl-popup-content {
           padding: 12px 16px;
@@ -185,6 +227,15 @@ function createBusMarkerSVG(isSelected: boolean) {
       <circle cx="20" cy="20" r="14" fill="white"/>
       <circle cx="20" cy="20" r="10" fill="${color}"/>
       <path d="M20 12L24 20H16L20 12Z" fill="white"/>
+    </svg>
+  `;
+}
+
+function createUserMarkerSVG() {
+  return `
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))">
+      <circle cx="12" cy="12" r="10" fill="#22c55e" stroke="white" stroke-width="3"/>
+      <circle cx="12" cy="12" r="4" fill="white"/>
     </svg>
   `;
 }

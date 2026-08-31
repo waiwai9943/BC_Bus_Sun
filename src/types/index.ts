@@ -16,6 +16,8 @@ export interface BusData {
   delay: number; // minutes (positive = late, negative = early)
   timestamp: Date;
   passengerLoad: "empty" | "low" | "medium" | "high";
+  // Optional distance from user (set when showing nearby buses)
+  distance?: number;
 }
 
 export interface TransitStop {
